@@ -11,6 +11,10 @@
     "ios": {
       "supportsTablet": true
     },
+    "extra": {
+      "uniformApiKey": "uf1pc3ylwm0z7x2gv8cdagc0v4m7ujlu8rex2lltt47vykxdsxl474p4ymxa2zlgjkv5cq24s4pza50s08zwhffzrtmy92ehf",
+      "uniformProjectId": "ad92f97b-c24b-4c20-9215-015cc47824f4"
+    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
