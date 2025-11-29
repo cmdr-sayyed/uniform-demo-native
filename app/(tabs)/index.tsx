@@ -68,7 +68,7 @@ export default function HomeScreen() {
         onPress={() =>
           router.push({
             pathname: '/composition/[...path]',
-            params: { path: ['/skin'], preview: 'true' },
+            params: { path: ['about'], preview: 'true' },
           })
         }>
         <Text style={styles.navButtonText}>Go to About</Text>

@@ -42,16 +42,28 @@ export function CompositionScreen() {
           ? params.path.split('/').filter(Boolean)
           : [];
         const isPreview = params.preview === 'true';
+        
+        console.log('[CompositionScreen] Loading composition:', {
+          pathArray: pathArray,
+          params: params,
+          isPreview: isPreview,
+        });
+        
         comp = await uniformService.fetchCompositionByRoute(pathArray, { preview: isPreview });
       }
 
       if (comp) {
         setComposition(comp);
       } else {
-        setError('Composition not found');
+        const pathDisplay = Array.isArray(params.path)
+          ? params.path.join('/')
+          : params.path || 'root';
+        setError(`Composition not found for path: /${pathDisplay}. Make sure the composition exists in Uniform and is published.`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load composition');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load composition';
+      console.error('[CompositionScreen] Error loading composition:', err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
