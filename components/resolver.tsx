@@ -3,10 +3,9 @@ import React from 'react';
 import { Text, View } from 'react-native';
 
 // Import your React Native components
-import { Header } from './Header';
-import { Hero } from './Hero';
 // import { Footer } from './';
 import { Container } from './Container';
+import Hero from './Hero';
 // import { ProductCard } from './ProductCard';
 
 export interface ResolvedComponent {
@@ -29,8 +28,8 @@ export function resolveComponent(
     case 'hero':
       return { component: Hero };
     
-    case 'header':
-      return { component: Header };
+    // case 'header':
+    //   return { component: Header };
     
     // case 'footer':
     //   return { component: Footer };

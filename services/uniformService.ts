@@ -28,7 +28,7 @@ export class UniformService {
     
     // Try different slug formats
     const slugVariants = [
-      path.length > 0 ? `/${path.join('/mobile')}` : '/',  // With leading slash: /about
+      path.length > 0 ? `/${path.join('/')}` : '/',  // With leading slash: /about
       path.length > 0 ? path.join('/') : '',          // Without leading slash: about
     ];
 
@@ -45,6 +45,7 @@ export class UniformService {
           slug: slug,
           state: state,
         });
+        console.log('Response', response);
 
         console.log('[UniformService] Response received:', {
           hasComposition: !!response.composition,

@@ -9,11 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.uniformdemonative"
     },
     "extra": {
       "uniformApiKey": "uf1pc3ylwm0z7x2gv8cdagc0v4m7ujlu8rex2lltt47vykxdsxl474p4ymxa2zlgjkv5cq24s4pza50s08zwhffzrtmy92ehf",
-      "uniformProjectId": "ad92f97b-c24b-4c20-9215-015cc47824f4"
+      "uniformProjectId": "6c4e0c76-ae29-4084-a220-aaef96536125"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +24,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.uniformdemonative"
     },
     "web": {
       "output": "static",

@@ -1,13 +1,10 @@
-import { ComponentInstance } from '@uniformdev/canvas';
-import { router } from 'expo-router';
+import { ComponentInstance, flattenValues } from '@uniformdev/canvas';
 import React from 'react';
 import {
-  Image,
-  ScrollView,
+  ImageBackground,
   StyleSheet,
   Text,
-  TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 
 interface HeroProps {
@@ -16,111 +13,65 @@ interface HeroProps {
   getParameter?: (paramId: string) => any;
 }
 
-export function Hero({ component, context, getParameter }: HeroProps) {
+function Hero({ component, context, getParameter }: HeroProps) {
   // Extract parameter values
+  // console.log('Hero component', component);
   const title = getParameter?.('title') || '';
-  const description = getParameter?.('description') || '';
-  const eyebrow = getParameter?.('eyebrow') || '';
-  const primaryCta = getParameter?.('primaryCta') || '';
-  const primaryCtaLink = getParameter?.('primaryCtaLink');
-  const image = getParameter?.('image');
+  const imageParam = getParameter?.('heroImage');
 
-  const handlePress = () => {
-    if (primaryCtaLink?.path) {
-      // Handle navigation - adjust based on your navigation setup
-      if (primaryCtaLink.type === 'url') {
-        // Open external URL - you'll need Linking from react-native
-        // Linking.openURL(primaryCtaLink.path);
-      } else {
-        // Navigate to internal route using Expo Router
-        const pathArray = primaryCtaLink.path.split('/').filter(Boolean);
-        router.push({
-          pathname: '/composition/[...path]',
-          params: { path: pathArray },
-        });
-      }
-    }
-  };
+  // Get image URL from parameter (typed as an asset with a url field)
+  const heroImage = flattenValues(imageParam?.[0] ?? {}) as { url?: string };
+  const heroImageUrl = heroImage?.url ?? '';
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        {eyebrow && (
-          <Text style={styles.eyebrow}>{eyebrow}</Text>
-        )}
+    <View style={styles.container}>
+      <ImageBackground
+        source={{ uri: heroImageUrl }}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
         
-        {title && (
+        <View style={styles.overlay} />
+        
+       
+        <View style={styles.content}>
           <Text style={styles.title}>{title}</Text>
-        )}
-        
-        {description && (
-          <Text style={styles.description}>{description}</Text>
-        )}
-
-        {image?.url && (
-          <Image
-            source={{ uri: image.url }}
-            style={styles.image}
-            resizeMode="cover"
-          />
-        )}
-
-        {primaryCta && (
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handlePress}
-          >
-            <Text style={styles.buttonText}>{primaryCta}</Text>
-          </TouchableOpacity>
-        )}
-
-      </View>
-    </ScrollView>
+        </View>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f9f6f2',
+    width: '100%',
+    minHeight: 148,
+  },
+  backgroundImage: {
+    width: '100%',
+    minHeight: 148,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 50, 0.6)', // Dark blue semi-transparent overlay
   },
   content: {
-    padding: 20,
-  },
-  eyebrow: {
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    color: '#a67a68',
-    marginBottom: 8,
+    zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
-    color: '#171410',
-    marginBottom: 12,
-  },
-  description: {
-    fontSize: 16,
-    color: '#5c5349',
-    marginBottom: 20,
-  },
-  image: {
-    width: '100%',
-    height: 300,
-    borderRadius: 16,
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: '#1f1b16',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 24,
-    alignSelf: 'flex-start',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    color: '#ffffff',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
 });
+
+export default Hero;

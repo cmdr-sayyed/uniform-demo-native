@@ -10,6 +10,7 @@ interface ContainerProps {
 }
 
 export function Container({ component, context, slots }: ContainerProps) {
+
   const contentSlot = slots?.content || [];
 
   return (
@@ -22,5 +23,6 @@ export function Container({ component, context, slots }: ContainerProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
   },
 });
