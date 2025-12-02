@@ -2,15 +2,18 @@ import { CompositionRenderer } from '@/components/CompositionRenderer';
 import { getUniformConfig } from '@/lib/uniformConfig';
 import { UniformService } from '@/services/uniformService';
 import { ComponentInstance } from '@uniformdev/canvas';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const uniformService = new UniformService(getUniformConfig());
 
 export default function HomeScreen() {
   const [composition, setComposition] = useState<ComponentInstance | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
     (async () => {
@@ -19,17 +22,21 @@ export default function HomeScreen() {
     })();
   }, []);
 
-  useEffect(() => {
-    loadComposition();
-  }, []);
-
-  const loadComposition = async () => {
+  const loadComposition = useCallback(async (forceRefresh = false) => {
     try {
-      setLoading(true);
+      if (forceRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
 
       // Fetch the root composition (path: [])
-      const comp = await uniformService.fetchCompositionByRoute([]);
+      // forceRefresh ensures we get the latest published content from Uniform
+      const comp = await uniformService.fetchCompositionByRoute([], { 
+        preview: false,
+        forceRefresh: forceRefresh 
+      });
 
       if (comp) {
         setComposition(comp);
@@ -40,10 +47,36 @@ export default function HomeScreen() {
       setError(err instanceof Error ? err.message : 'Failed to load composition');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
 
-  if (loading) {
+  // Load composition on mount
+  useEffect(() => {
+    loadComposition(false);
+    // Mark initial mount as complete after a short delay
+    const timer = setTimeout(() => {
+      isInitialMount.current = false;
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [loadComposition]);
+
+  // Refresh when screen comes into focus (user returns to this screen)
+  // This ensures changes published in Uniform are visible when user navigates back
+  useFocusEffect(
+    useCallback(() => {
+      // Only refresh if it's not the initial mount (avoid double fetch on mount)
+      if (!isInitialMount.current) {
+        loadComposition(true);
+      }
+    }, [loadComposition])
+  );
+
+  const onRefresh = useCallback(() => {
+    loadComposition(true);
+  }, [loadComposition]);
+
+  if (loading && !composition) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#1f1b16" />
@@ -53,16 +86,26 @@ export default function HomeScreen() {
 
   if (error || !composition) {
     return (
-      <View style={styles.center}>
+      <ScrollView
+        contentContainerStyle={styles.center}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <Text style={styles.error}>{error || 'Composition not found'}</Text>
-      </View>
+      </ScrollView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <CompositionRenderer composition={composition} />
-    </View>
+    </ScrollView>
   );
 }
 

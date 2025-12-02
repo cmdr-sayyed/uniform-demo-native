@@ -1,7 +1,7 @@
 import { ComponentInstance } from '@uniformdev/canvas';
-import { useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CompositionRenderer } from '../components/CompositionRenderer';
 import { getUniformConfig } from '../lib/uniformConfig';
 import { UniformService } from '../services/uniformService';
@@ -16,22 +16,26 @@ export function CompositionScreen() {
   }>();
   const [composition, setComposition] = useState<ComponentInstance | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isInitialMount = useRef(true);
+  const previousParamsRef = useRef<string>('');
 
-  useEffect(() => {
-    loadComposition();
-  }, [JSON.stringify(params.path), params.compositionId]);
-
-  const loadComposition = async () => {
+  const loadComposition = useCallback(async (forceRefresh = false) => {
     try {
-      setLoading(true);
+      if (forceRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
 
       let comp: ComponentInstance | null = null;
 
       if (params.compositionId) {
         comp = await uniformService.fetchCompositionById(
-          params.compositionId
+          params.compositionId,
+          { preview: params.preview === 'true', forceRefresh: forceRefresh }
         );
       } else {
         // Handle path as array or string from Expo Router
@@ -47,9 +51,13 @@ export function CompositionScreen() {
           pathArray: pathArray,
           params: params,
           isPreview: isPreview,
+          forceRefresh: forceRefresh,
         });
         
-        comp = await uniformService.fetchCompositionByRoute(pathArray, { preview: isPreview });
+        comp = await uniformService.fetchCompositionByRoute(pathArray, { 
+          preview: isPreview,
+          forceRefresh: forceRefresh 
+        });
       }
 
       if (comp) {
@@ -66,10 +74,42 @@ export function CompositionScreen() {
       setError(errorMessage);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [params.compositionId, params.path, params.preview]);
 
-  if (loading) {
+  // Load composition when params change
+  useEffect(() => {
+    const currentParams = JSON.stringify({ path: params.path, compositionId: params.compositionId });
+    
+    // Only load if params actually changed
+    if (currentParams !== previousParamsRef.current) {
+      previousParamsRef.current = currentParams;
+      loadComposition(false);
+      // Mark initial mount as complete after a short delay
+      const timer = setTimeout(() => {
+        isInitialMount.current = false;
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [JSON.stringify(params.path), params.compositionId, loadComposition]);
+
+  // Refresh when screen comes into focus (user returns to this screen)
+  // This ensures changes published in Uniform are visible when user navigates back
+  useFocusEffect(
+    useCallback(() => {
+      // Only refresh if it's not the initial mount (avoid double fetch on mount)
+      if (!isInitialMount.current) {
+        loadComposition(true);
+      }
+    }, [loadComposition])
+  );
+
+  const onRefresh = useCallback(() => {
+    loadComposition(true);
+  }, [loadComposition]);
+
+  if (loading && !composition) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#1f1b16" />
@@ -79,16 +119,26 @@ export function CompositionScreen() {
 
   if (error || !composition) {
     return (
-      <View style={styles.center}>
+      <ScrollView
+        contentContainerStyle={styles.center}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <Text style={styles.error}>{error || 'Composition not found'}</Text>
-      </View>
+      </ScrollView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <CompositionRenderer composition={composition} />
-    </View>
+    </ScrollView>
   );
 }
 
