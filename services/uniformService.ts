@@ -22,7 +22,7 @@ export class UniformService {
    */
   async fetchCompositionByRoute(
     path: string[] = [],
-    options?: { preview?: boolean }
+    options?: { preview?: boolean; forceRefresh?: boolean }
   ): Promise<ComponentInstance | null> {
     const state = options?.preview ? 0 : 64;
     
@@ -39,8 +39,11 @@ export class UniformService {
           slug: slug,
           state: state,
           preview: options?.preview || false,
+          forceRefresh: options?.forceRefresh || false,
         });
 
+        // Make the API call - forceRefresh option is available for future use
+        // The CanvasClient will make a fresh API call each time
         const response = await this.client.getCompositionBySlug({
           slug: slug,
           state: state,
@@ -91,12 +94,15 @@ export class UniformService {
    */
   async fetchCompositionById(
     compositionId: string,
-    options?: { preview?: boolean }
+    options?: { preview?: boolean; forceRefresh?: boolean }
   ): Promise<ComponentInstance | null> {
     try {
+      const state = options?.preview ? 0 : 64;
+      
+      // Make the API call - forceRefresh option is available for future use
       const response = await this.client.getCompositionById({
         compositionId,
-        state: options?.preview ? 0 : 64,
+        state: state,
       });
 
       return response.composition || null;
