@@ -6,6 +6,7 @@ import {
   Text,
   View
 } from 'react-native';
+import AllServices from './AllServices';
 
 interface HeroProps {
   component: ComponentInstance;
@@ -38,6 +39,8 @@ function Hero({ component, context, getParameter }: HeroProps) {
           <Text style={styles.title}>{title}</Text>
         </View>
       </ImageBackground>
+
+      <AllServices />
     </View>
   );
 }

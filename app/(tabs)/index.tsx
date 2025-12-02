@@ -61,7 +61,6 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-     
       <CompositionRenderer composition={composition} />
     </View>
   );
